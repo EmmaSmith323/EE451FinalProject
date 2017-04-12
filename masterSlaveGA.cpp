@@ -3,77 +3,114 @@
 //capacity could be 70% favorable outcome
 //capacity is the value that all threads commit to 
 #define num_threads 16; 
+#define m_size 128;
 
 
-char**  [m_space*m_space] m_space;
+struct thread_data {
+	int thread_id;
+	int local_count;
+	char** fav;
+};
+
+
+const char**  [m_size*m_size] m_space;
 int chunk_size; //size of chunk 
 int n; // size of string length 
-char[chunk_size] fav; ///give this to the threads 
+const char** fav; ///give this to the threads 
 
-int numBlocks = n/chunk_size; 
+int numBlocks; 
+
+struct thread_data* thread_data_array;
 
 bool fav_capacity = false;
 
-void main() {
+void main(int argc, char** argv) {
+	
+	if(argc != 4) {
+			printf("usage: %s n chunck_size fav\n", argv[0]);
+			return 0;
+	}
+	n = strtol(argv[1], NULL, 10);
+	chunk_size = strtol(argv[2], NULL, 10);
+	//TODO: is fav right?
+	fav = argv[3];
+	numBlocks = n/chunk_size; 
+	
+	thread_data_array = (struct thread_data*) malloc (sizeof(struct thread_data)* num_threads);
+	pthread_t threads[num_threads];
+	int rc;
+	
 	//Initial state of the matrix: even rows are bits of size n all 0’s, size of n bits all 1’s. 
-	for(int i =0; i<m_size; i++){
-		for(int j = 0; j<m_size; j++){
-			if(i%2 == 0) { //row is even 
-				Bits of size All 0’s; 
-			} else { 
-				Bits of size All 1’s 
-			} 
-		}
+	
+	for(int i =0; i<m_size*m_size; i++){
+		m_space[i] = (char**)malloc((n*sizeof(char));
+		if(i%2 == 0) { //row is even 
+			for(int q = 0; q < n; q++) {
+				m_space[i][q] = '1';
+			}
+		} else { 
+			for(int q = 0; q < n; q++) {
+				m_space[i][q] = '0';
+			}
+		} 
 	}
 
 	while(!fav_capacity) {
-		//crossover - for all in mating pool, pick a random partner, switch one random block
 		vector<char**> matingPool [m_size*m_size];
 		for(ink =0; k<m_size/2 ; k++){
 			
-			//crossover 
-			int firstIndex = rand % m_size^2;
-			int secondIndex = rand % m_size^2;
-			char* m1 = matingPool.at(firstIndex);
-			char* m2 = matingPool.at(secondIndex); 
+			//crossover - for all in mating pool, pick a random partner, switch one random block
+			int firstIndex = rand()%(m_size*m_size);
+			int secondIndex = rand()%(m_size*m_size);
+			while(firstIndex==secondIndex) {
+				secondIndex = rand()%(m_size*m_size);
+			}
+			char** m1 = matingPool.at(firstIndex);
+			char** m2 = matingPool.at(secondIndex); 
 
 			//Recombination - save the new values determined by crossover
-			int blockID = rand%numBlocks;
+			int blockID = rand()%numBlocks;
 			swap(m1, m2, block_swap*chunk_size);
-
 			matingPool.remove[firstIndex ];
 			matingPool.remove[secondIndex  ];
 		}
 
-		//Mutation - rare chance to flip one bit
-		//10 % of people get mutated every iteration
-		for (int i = 0; i < m_size^2; i++) {
-			int chance = rand%100;
+		//Mutation - 10% chance to flip one random bit
+		for (int i = 0; i < m_size*m_size; i++) {
+			int chance = rand()%100;
 			if(chance < 10) {
-				int bit = rand%n;
+				int bit = rand()%n;
 				mutate(m_size[i], bit);
 			}
 		}
 		//update capacity value by using slaves
 		//split the m_size*m_size matrix into num_threads amount of threads
 		for(int j = 0; j<num_threads; j++){
-			Thread[j] gets (thread_index); 
+			thread_data_array[j].thread_id = j;
+			thread_data_array[j].local_count = 0;
+			thread_data_array[j].fav = fav;
+			rc = pthread_create(&threads[j], NULL, count_fav, (void *) &thread_data_array[j]);
+			if(rc) {printf("ERROR creating thread");}
 		}
 
 		//thread join 
-
+		for(int j = 0; j<num_threads; j++){
+				rc = pthread_join(threads[j], NULL);
+				if(rc) {printf("ERROR joining thread");}	
+		}
+		
 		//after thread join, decide population number 
 		double total_fav_pop = 0;
 		for(int i =0; i<num_threads; i++){
-			Total_fav_pop += threads[i].local_count; 
+			total_fav_pop += thread_data_array[i].local_count; 
 		}
 
 		//total_fav_pop now has all of favorable people 
 
 		//decide capacity 
 		//70% favorable 
-		Double population = m_size * m_size; 
-		Double cap = total_fav_pop / population; 
+		double population = m_size * m_size; 
+		double cap = total_fav_pop / population; 
 
 		if(cap >= .7) {
 			fav_capacity = true; 
