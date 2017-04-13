@@ -158,5 +158,12 @@ Return false;
 /* IDEA*/ 
 Doubly linked list for matingPool, every iteration make a new doubly linked list with full size of every element in the m_space. 
 Decide which two are going to crossover 
-Remove both elements from the linked list 
+Remove both elements from the linked list \
+
+
+
+
+               
+                char*m1;
+                char*m2;
 
