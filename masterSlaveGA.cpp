@@ -247,7 +247,7 @@ void *count_fav( void* threadarg )
     int thread_index = mydata->thread_id; // i hope this is correct and works the same as before
 
     int start = thread_index *(m_size * m_size ) / num_threads;
-    int end = start + (m_size * m_size ) / num_threads;
+    int end = start + (m_size * m_size ) / num_threads - 1;
     int local_count = 0;
 
     for(int i = start; i<end; i++)
