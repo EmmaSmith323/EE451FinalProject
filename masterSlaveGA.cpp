@@ -14,6 +14,7 @@ using namespace std;
 #define m_size 128
 
 
+// g++ -lrt -lpthread -o masterslave masterSlaveGA.cpp
 static bool check_fav(char** fav, char* a);
 static void* count_fav( void* threadarg );
 static void mutate(char* a,int index);
@@ -134,6 +135,7 @@ int main(int argc, char** argv)
                 
                 it++;
             }
+
             //Recombination - save the new values determined by crossover
             int blockID = rand()%numBlocks;
             swap(&m1, &m2, (blockID*chunk_size));
@@ -247,14 +249,12 @@ void *count_fav( void* threadarg )
     int thread_index = mydata->thread_id; // i hope this is correct and works the same as before
 
     int start = thread_index *(m_size * m_size ) / num_threads;
-    int end = start + (m_size * m_size ) / num_threads - 1;
+    int end = start + (m_size * m_size ) / num_threads -1 ; // should be correct
     int local_count = 0;
 
     for(int i = start; i<end; i++)
     {
         //check favorability of m_space[i];
-        char my_string[chunk_size+1];
-       // my_string = m_space[i];
         char** favor = mydata->fav; // is this also going to work?
                                     
         if(check_fav(favor, m_space[i])) 

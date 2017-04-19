@@ -14,6 +14,7 @@ using namespace std;
 #define m_size 128
 
 
+// g++ -lrt -lpthread -o finecourse fineCourseGA.cpp
 static bool check_fav(char** fav, char* a);
 static void* thread_calc( void* threadarg );
 static void mutate(char* a,int index);
@@ -185,7 +186,7 @@ void *thread_calc( void* threadarg )
 
     int thread_index = mydata->thread_id; // i hope this is correct and works the same as before
 	// USe a char** or an array????????????????????????????????????????
-	char** m_space_copy = mydata->my_space_copy;
+	char** m_space_copy = mydata->m_space_copy;
 
 	vector<char*> matingPool;
 	vector<int>matingIndex;
