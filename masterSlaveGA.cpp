@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <iterator>
+#include <string.h>
 
 using namespace std;
 //capacity could be 70% favorable outcome
@@ -15,7 +16,7 @@ using namespace std;
 
 
 // g++ -lrt -lpthread -o masterslave masterSlaveGA.cpp
-static bool check_fav(char** fav, char* a);
+static bool check_fav(char* fav, char* a);
 static void* count_fav( void* threadarg );
 static void mutate(char* a,int index);
 static void swap(char** a, char** b, int start);
@@ -24,7 +25,7 @@ static void swap(char** a, char** b, int start);
 struct thread_data {
     int thread_id;
     int local_count;
-    char** fav;
+    char* fav;
 };
 
 
@@ -32,7 +33,7 @@ struct thread_data {
 char** m_space;
 int chunk_size; //size of chunk
 int n; // size of string length
-char** fav; ///give this to the threads
+char* fav; ///give this to the threads
 
 int numBlocks;
 
@@ -42,6 +43,8 @@ bool fav_capacity = false;
 // main function
 int main(int argc, char** argv) 
 {
+    printf("before anythign in main \n");
+    
     if(argc != 4) 
     {
         cout <<"usage: %s n chunck_size fav\n" <<  argv[0] << endl;
@@ -50,11 +53,23 @@ int main(int argc, char** argv)
     n = strtol(argv[1], NULL, 10);
     chunk_size = strtol(argv[2], NULL, 10);
     //TODO: is fav right?
-    fav[0] = argv[3];
+   
+   // int l;
+   // for(l=0; l<chunk_size; l++){
+    fav= argv[3];
+  //  }
+    
+    printf("n=%d, chunk_size = %d, fav= %s \n", n, chunk_size, fav);
+    
+  //  fav[0] = argv[3];
+    
+    
+    
+    
     numBlocks = n/chunk_size;
     
     //malloc m_space
-    m_space = (char**) malloc(sizeof(char*)*m_size*m_size);
+    m_space = (char**)malloc(sizeof(char*)*m_size*m_size);
     
     //pthreads
     struct thread_data thread_data_array[num_threads];
@@ -62,33 +77,48 @@ int main(int argc, char** argv)
     int rc;
     pthread_attr_t attr;
     
+    printf("made it to after init \n");
     
     //initialize attribute
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
     
     //Initial state of the matrix: even rows are bits of size n all 0’s, size of n bits all 1’s.
-    int i;
-    for(int i =0; i<m_size*m_size; i++)
+    char** temp = m_space;
+    int i = 0;
+    while(temp < m_space+(m_size*m_size))
     {
-        m_space[i] = (char*)malloc((n*sizeof(char)));
-
+       *temp = (char*)malloc((n+1)*sizeof(char));
+       // printf("inside for \n");
         if(i%2 == 0) 
         { //row is even
-            for( int q = 0; q < n; q++) 
-            {
-                m_space[i][q] = '1';
+           
+            for( int q = 0; q < n; q++)
+            {   //printf("inside inner for from 0 to n \n");
+                *temp += '1';
             }
+            *temp += '\0';
+          //  cout << m_space[i] << endl;
         } 
         else 
         {
             for(int q = 0; q < n; q++) 
             {
-                m_space[i][q] = '0';
+                *temp += '0';
             }
+          //  cout << m_space[i] << endl;
+            *temp += '\0';
         }
+        
+        temp++;
+        i++;
     }
-                                                                    
+    
+    
+
+    
+    
+    printf("finished assigning 0 and 1 to matrix \n");
     while(!fav_capacity) 
     {
         vector<char*> matingPool;
@@ -98,23 +128,31 @@ int main(int argc, char** argv)
         for(int k=0; k<m_size *m_size; k++)
         {
             //populate
-            matingPool.push_back(m_space[k]);
+            //std::string temp(m_space[k]);
+            
+           // cout << temp << endl;
+            printf("mspace[k] = %s \n",*(m_space + k) );
+            matingPool.push_back(*(m_space + k));
             matingIndex.push_back(k);
         }
-        
-        int temp_size = m_size*m_size;
-        for(int k =0; k<m_size/2 ; k++)
+        printf("after pushback \n");
+        for(int k =0; k<m_size*m_size/2 ; k++)
         {
-                                            
+            
+            printf("k= %d \n", k);
+            printf("in for mating \n");
             //crossover - for all in mating pool, pick a random partner, switch one random block
-            int firstIndex = rand()%(temp_size);
-            int secondIndex = rand()%(temp_size);
+            int firstIndex = rand()%(matingPool.size());
+            int secondIndex = rand()%(matingPool.size());
             while(firstIndex==secondIndex) 
             {
-                secondIndex = rand()%(temp_size);
+                secondIndex = rand()%(matingPool.size());
             }
             char*m1;
             char*m2;
+            
+            printf("first index = %d , second index = %d \n", firstIndex, secondIndex);
+            
             
             //Iterators
             vector<char*>::iterator it= matingPool.begin();
@@ -122,42 +160,63 @@ int main(int argc, char** argv)
             
             for( ; iter != matingIndex.end(); iter++)
             {
+              //  printf("inside mting index \n");
                 
                 if(*iter == firstIndex)
-                {
+                {  printf("found first index \n");
                     m1 = *it;
                 }
                 
                 if(*iter == secondIndex)
                 {
+                    printf("found second index \n");
                     m2 = *it;
                 }
                 
                 it++;
             }
 
+            printf("before recom \n");
+            
             //Recombination - save the new values determined by crossover
             int blockID = rand()%numBlocks;
             swap(&m1, &m2, (blockID*chunk_size));
           
+            printf("outside of swap \n");
             vector<char*>::iterator ita = matingPool.begin();
+            printf("ita begin = %s \n", *matingPool.begin());
+            printf("ita end = %s \n", *matingPool.end());
+              printf("iterator set to begin  \n");
             for( ; ita != matingPool.end(); ita++)
-            {
+            {  printf("inside for mating pool \n");
                 if(*ita == m1) // this should work okay im not sure yet
                 {
+                    printf("found m1 \n");
                     matingPool.erase(ita);
+                    break;
+             
                 }
                 
+            }
+            
+            
+            ita = matingPool.begin();
+            //erase m2
+            for( ; ita != matingPool.end(); ita++)
+            {  //printf("inside for mating pool \n");
+
                 if((*ita) == m2)
-                {
+                {   printf("found m2 \n");
                     matingPool.erase(ita);
+                    break;
                 }
             }
-        
-            temp_size -= 2;
             
-        }
-                                        
+           // while(1);
+            
+        }//end of mating for loop
+        
+        printf("before mutation done with recom \n");
         
         //Mutation - 10% chance to flip one random bit
         for (int i = 0; i < m_size*m_size; i++) 
@@ -220,6 +279,17 @@ int main(int argc, char** argv)
         
     }
         //outside while inside main
+    
+    
+    //print results
+
+    for(i = 0; i<m_size*m_size; i++){
+        printf("%s", m_space[i]);
+        if(i%32 == 0) printf("\n");
+    }
+    
+    
+    
     return 0; 
 }
                                                                   
@@ -241,7 +311,7 @@ void mutate(char* a, int index)
 }
                                                                                
 //THREAD FUNCTION
-void *count_fav( void* threadarg ) 
+void* count_fav( void* threadarg )
 {
     struct thread_data * mydata;
     mydata = (struct thread_data*) threadarg;
@@ -255,7 +325,7 @@ void *count_fav( void* threadarg )
     for(int i = start; i<end; i++)
     {
         //check favorability of m_space[i];
-        char** favor = mydata->fav; // is this also going to work?
+        char* favor = mydata->fav; // is this also going to work?
                                     
         if(check_fav(favor, m_space[i])) 
         {
@@ -263,10 +333,11 @@ void *count_fav( void* threadarg )
         }
     }
     mydata->local_count = local_count; // assign the local count value to the thread?
+     pthread_exit(NULL);
 }
         
 //finds favorable trait inside the bit string of length n
-bool check_fav(char** fav, char* a )
+bool check_fav(char* fav, char* a )
 {
     for(int j=0; j<n/chunk_size; j++)
     {
@@ -275,7 +346,7 @@ bool check_fav(char** fav, char* a )
         for(int k=0; k<chunk_size; k++)
         {
             int index = j * chunk_size + k;
-            if(a[index] == *fav[k])
+            if(a[index] == fav[k])
             {
                 sameBits++;
             }
