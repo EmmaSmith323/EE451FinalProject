@@ -199,21 +199,24 @@ void swap(struct elem a, struct elem b, int start)
         b.dna[i] = temp[i];
     }
     //copys elem dna into the m_vspace[x][y]
-    m_vspace[a.x][a.y] = a.dna;
-    m_vspace[b.x][b.y] = b.dna;
+	m_vspace[a.x][a.y] = a.dna;
+	m_vspace[b.x][b.y] = b.dna;
     
 }
                                                                            
 void mutate(int i, int j, int index)
 {
     string localString = m_vspace[i][j];
-    if (localString.at(index) == '1') {
-        localString.at(index) = '0';
+	if(!check_fav(fav, localString)) {
+		if (localString.at(index) == '1') {
+			localString.at(index) = '0';
+		}
+		else {
+			localString.at(index) = '1';
+		}
+		m_vspace[i][j] = localString;
 	}
-    else {
-        localString.at(index) = '1';
-	}
-	m_vspace[i][j] = localString;
+
 }
                                                                                
 //THREAD FUNCTION
