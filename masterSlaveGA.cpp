@@ -201,9 +201,8 @@ void swap(struct elem a, struct elem b, int start)
     //copys elem dna into the m_vspace[x][y]
 	m_vspace[a.x][a.y] = a.dna;
 	m_vspace[b.x][b.y] = b.dna;
-    
 }
-                                                                           
+    
 void mutate(int i, int j, int index)
 {
     string localString = m_vspace[i][j];
@@ -216,9 +215,8 @@ void mutate(int i, int j, int index)
 		}
 		m_vspace[i][j] = localString;
 	}
-
 }
-                                                                               
+         
 //THREAD FUNCTION
 void* count_fav( void* threadarg )
 {
