@@ -40,6 +40,10 @@ string fav; ///give this to the threads
 int numBlocks; //number of blocks of dna
 bool fav_capacity = false;
 
+	struct timespec fullStart, fullStop; 
+	struct timespec miniStart, miniStop;
+	double fullTime, miniTime;
+
 // main function
 int main(int argc, char** argv) 
 {
@@ -82,10 +86,12 @@ int main(int argc, char** argv)
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 	
-    printf("made it to after all init \n");
+    //printf("made it to after all init \n");
+	if( clock_gettime( CLOCK_REALTIME, &fullStart) == -1 ) { perror( "clock gettime" );}
     while(!fav_capacity) 
     {
-		cout << "beginning of while not capacity loop" << endl;
+		if( clock_gettime( CLOCK_REALTIME, &miniStart) == -1 ) { perror( "clock gettime" );}
+		//cout << "beginning of while not capacity loop" << endl;
         vector<struct elem> matingPool;
 
         //copy over m_vspace into matingPool vector;
@@ -98,7 +104,7 @@ int main(int argc, char** argv)
                 matingPool.push_back(e);
             }
         }
-        printf("after pushback \n");
+        //printf("after pushback \n");
         while(matingPool.size() > 0) {
             //cout << "In mating while, Mating Pool size " << matingPool.size() << "\n";
             //crossover - for all in mating pool, pick a random partner, switch one random block
@@ -140,7 +146,7 @@ int main(int argc, char** argv)
                 }
             }
         }
-        cout << "done with mutations!" << endl;
+        //cout << "done with mutations!" << endl;
         
         //update capacity value by using slaves
         //split the m_size*m_size matrix into num_threads amount of threads
@@ -161,7 +167,7 @@ int main(int argc, char** argv)
                 cout << "ERROR joining thread" << endl;
             }
         }
-		cout << "after thread creates & joins" << endl;									
+		//cout << "after thread creates & joins" << endl;									
         //after thread join, decide population number
         double total_fav_pop = 0;
         for(int i =0; i<num_threads; i++) {
@@ -175,10 +181,20 @@ int main(int argc, char** argv)
         if(cap >= .7) {
             fav_capacity = true;
         }
-		cout << "END OF THIS GENERATION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+			
+		cout << "END OF THIS GENERATION!" << endl;
 		cout << "capacity = " << cap << endl << endl;
+		
+		if( clock_gettime( CLOCK_REALTIME, &miniStop) == -1 ) { perror( "clock gettime" );}
+		miniTime = (miniStop.tv_sec - miniStart.tv_sec)+ (double)(miniStop.tv_nsec - miniStart.tv_nsec)/1e9;
+		printf("time for this generation is %f s\n", miniTime);
+		
     } //end of capacity while - all done with generations
 	
+	if( clock_gettime( CLOCK_REALTIME, &fullStop) == -1 ) { perror( "clock gettime" );}	  
+	fullTime = (fullStop.tv_sec - fullStart.tv_sec)+ (double)(fullStop.tv_nsec - fullStart.tv_nsec)/1e9;
+	printf("time for entire algorithm is %f s\n", fullTime);
+   
     //print results
     for(int i = 0; i<m_size; i++){
         for(int j=0; j<m_size; j++){

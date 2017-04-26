@@ -7,6 +7,7 @@
 #include <iterator>
 #include <string.h>
 
+
 using namespace std;
 #define m_size 128
 
@@ -29,6 +30,10 @@ string fav; ///string to check for
 int numBlocks; //number of blocks of dna
 bool fav_capacity = false;
 
+	struct timespec fullStart, fullStop; 
+	struct timespec miniStart, miniStop;
+	double fullTime, miniTime;
+	
 // main function
 int main(int argc, char** argv) 
 {
@@ -46,14 +51,22 @@ int main(int argc, char** argv)
     
     //Initial state of the matrix: even rows are bits of size n all 0’s, size of n bits all 1’s.
 	//TODO: make the strings we push back relate to the input of n!!!!!
+	string allOnes;
+	string allZeros;
+	
+	for(int i = 0; i < n;i++) {
+		allOnes += '1';
+		allZeros += '0';
+	}
+	
     for (int i =0; i < m_size; i++) {
         vector<string> myvector;
         for (int j = 0; j < m_size; j++) {
             if(i%2 == 0){
-				myvector.push_back("11111111");
+				myvector.push_back(allOnes);
             }
             else {
-				myvector.push_back("00000000");
+				myvector.push_back(allZeros);
             }
         }
         m_vspace.push_back(myvector);
@@ -62,9 +75,11 @@ int main(int argc, char** argv)
     cout << "Done initializing m_vspace" << endl;
 	
     printf("made it to after all init \n");
+	if( clock_gettime( CLOCK_REALTIME, &fullStart) == -1 ) { perror( "clock gettime" );}
     while(!fav_capacity) 
     {
-		cout << "beginning of while not capacity loop" << endl;
+		if( clock_gettime( CLOCK_REALTIME, &miniStart) == -1 ) { perror( "clock gettime" );}
+		//cout << "beginning of while not capacity loop" << endl;
         vector<struct elem> matingPool;
 
         //copy over m_vspace into matingPool vector;
@@ -77,7 +92,7 @@ int main(int argc, char** argv)
                 matingPool.push_back(e);
             }
         }
-        printf("after pushback \n");
+        //printf("after pushback \n");
         while(matingPool.size() > 0) {
             //cout << "In mating while, Mating Pool size " << matingPool.size() << "\n";
             //crossover - for all in mating pool, pick a random partner, switch one random block
@@ -105,7 +120,7 @@ int main(int argc, char** argv)
             //cout << "Mating Pool size after erases " << matingPool.size() << "\n";
         }//end of mating while loop - all paired up
         
-		cout << "before mutate" << endl;
+		//cout << "before mutate" << endl;
         //Mutation - 10% chance to flip one random bit
         for (int i=0; i < m_size; i++) {
             for(int j=0; j< m_size; j++){  
@@ -119,7 +134,7 @@ int main(int argc, char** argv)
                 }
             }
         }
-        cout << "done with mutations!" << endl;
+        //cout << "done with mutations!" << endl;
         
         double total_fav_pop = 0;
 		for(int i = 0; i<m_size; i++) {
@@ -139,11 +154,20 @@ int main(int argc, char** argv)
         if(cap >= .7) {
             fav_capacity = true;
         }
-		cout << "END OF THIS GENERATION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+		cout << "END OF THIS GENERATION!" << endl;
 		cout << "capacity = " << cap << endl << endl;
+		
+		if( clock_gettime( CLOCK_REALTIME, &miniStop) == -1 ) { perror( "clock gettime" );}
+		miniTime = (miniStop.tv_sec - miniStart.tv_sec)+ (double)(miniStop.tv_nsec - miniStart.tv_nsec)/1e9;
+		printf("time for this generation is %f s\n", miniTime);
+		
     } //end of capacity while - all done with generations
-	
-    //print results
+
+	if( clock_gettime( CLOCK_REALTIME, &fullStop) == -1 ) { perror( "clock gettime" );}	  
+	fullTime = (fullStop.tv_sec - fullStart.tv_sec)+ (double)(fullStop.tv_nsec - fullStart.tv_nsec)/1e9;
+	printf("time for entire algorithm is %f s\n", fullTime);
+   
+   //print results
     for(int i = 0; i<m_size; i++){
         for(int j=0; j<m_size; j++){
             printf("%s", m_vspace[i][j].c_str());
