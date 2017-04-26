@@ -50,7 +50,6 @@ int main(int argc, char** argv)
 	cout << "n " << n << ", chunk_size " << chunk_size << ", fav = " << fav << ", numBlocks " << numBlocks << "\n" ;
     
     //Initial state of the matrix: even rows are bits of size n all 0’s, size of n bits all 1’s.
-	//TODO: make the strings we push back relate to the input of n!!!!!
 	string allOnes;
 	string allZeros;
 	
@@ -155,11 +154,12 @@ int main(int argc, char** argv)
             fav_capacity = true;
         }
 		cout << "END OF THIS GENERATION!" << endl;
-		cout << "capacity = " << cap << endl << endl;
+		cout << "capacity = " << cap << endl;
 		
 		if( clock_gettime( CLOCK_REALTIME, &miniStop) == -1 ) { perror( "clock gettime" );}
 		miniTime = (miniStop.tv_sec - miniStart.tv_sec)+ (double)(miniStop.tv_nsec - miniStart.tv_nsec)/1e9;
 		printf("time for this generation is %f s\n", miniTime);
+		cout << endl;
 		
     } //end of capacity while - all done with generations
 
@@ -167,13 +167,7 @@ int main(int argc, char** argv)
 	fullTime = (fullStop.tv_sec - fullStart.tv_sec)+ (double)(fullStop.tv_nsec - fullStart.tv_nsec)/1e9;
 	printf("time for entire algorithm is %f s\n", fullTime);
    
-   //print results
-    for(int i = 0; i<m_size; i++){
-        for(int j=0; j<m_size; j++){
-            printf("%s", m_vspace[i][j].c_str());
-        }
-        cout<<endl;
-    }
+   
     return 0; 
 }
                                                                   
