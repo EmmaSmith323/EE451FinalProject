@@ -59,6 +59,8 @@ int main(int argc, char** argv)
 	numBlocks = n/chunk_size;
 	cout << "n " << n << ", chunk_size " << chunk_size << ", fav = " << fav << ", numBlocks " << numBlocks << "\n" ;
     
+	srand (time(NULL));
+	
     //Initial state of the matrix: even rows are bits of size n all 0’s, size of n bits all 1’s.
 
 	string allOnes;
@@ -139,7 +141,7 @@ int main(int argc, char** argv)
         for (int i=0; i < m_size; i++) {
             for(int j=0; j< m_size; j++){  
                 int chance = rand()%100;
-                if(chance < 10) {
+                if(chance < 15) {
                     int bit = rand()%n;
                     mutate(i, j, bit);
                 }

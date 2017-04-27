@@ -6,7 +6,7 @@
 #PBS -l walltime=2:00:00
 
 # Send all output sent to standard out to a file 
-#PBS -o 64tests.output
+#PBS -o testFC.output
 
 # Send all output sent to standard error to a file
 #PBS -e errors.error
@@ -15,7 +15,7 @@
 #PBS -m be
 
 # My job is called 
-#PBS -N tests
+#PBS -N fc
 
 # my email address
 #PBS -M emmarsmi@usc.edu
@@ -27,7 +27,4 @@
 source /usr/usc/openmpi/default/setup.sh
 
 # Now run the program
-./mslave64 8 4 1010
-./mslave64 16 4 1010
-./mslave64 32 4 1010
-./mslave64 64 4 1010
+./fineCoarse 8 4 1011

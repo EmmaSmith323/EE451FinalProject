@@ -49,3 +49,5 @@ masterSlaveGA
 16tests.output
 2tests.output
 *.output
+*.pbs
+*.pbs

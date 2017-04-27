@@ -67,6 +67,7 @@ int main(int argc, char** argv)
 	numBlocks = n/chunk_size;
 	cout << "n " << n << ", chunk_size " << chunk_size << ", fav = " << fav << ", numBlocks " << numBlocks << "\n" ;
     
+	
     //Initial state of the matrix: even rows are bits of size n all 0’s, size of n bits all 1’s.
 	
 	string allOnes;
@@ -106,6 +107,7 @@ int main(int argc, char** argv)
     {
 	    //do mating using the slaves
         //split the m_size*m_size matrix into num_threads amount of threads
+		if( clock_gettime( CLOCK_REALTIME, &miniStart) == -1 ) { perror( "clock gettime" );}
         for(int q = 0; q<num_threads; q++) {
 			//copy over m_vspace into m_vspace_copies
 			for(int i=(q*m_size)/num_threads; i< ((q+1)*m_size)/num_threads; i++) {
@@ -148,7 +150,10 @@ int main(int argc, char** argv)
         double population = m_size * m_size;
         double cap = total_fav_pop / population;
         cout << "END OF THIS GENERATION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-		cout << "capacity = " << cap << endl << endl;                   
+		cout << "capacity = " << cap << endl << endl;     
+		if( clock_gettime( CLOCK_REALTIME, &miniStop) == -1 ) { perror( "clock gettime" );}
+		miniTime = (miniStop.tv_sec - miniStart.tv_sec)+ (double)(miniStop.tv_nsec - miniStart.tv_nsec)/1e9;
+		printf("time for this generation is %f s\n", miniTime);		
         if(cap >= .7) {
             fav_capacity = true;
         }
@@ -156,7 +161,7 @@ int main(int argc, char** argv)
 	if( clock_gettime( CLOCK_REALTIME, &fullStop) == -1 ) { perror( "clock gettime" );}	  
 	fullTime = (fullStop.tv_sec - fullStart.tv_sec)+ (double)(fullStop.tv_nsec - fullStart.tv_nsec)/1e9;
 	printf("time for entire algorithm is %f s\n", fullTime);
-	cout << "master slave, n = " << n << " thread num = " << num_threads << endl << endl; 
+	cout << "fine coarse, n = " << n << " thread num = " << num_threads << endl << endl; 
 	cout << endl;
     
         //outside capacity while inside main
@@ -201,9 +206,12 @@ void *thread_calc( void* threadarg )
     struct thread_data * mydata;
     mydata = (struct thread_data*) threadarg;
     string fav = mydata->fav;
+	
+		srand (time(NULL));
     
     int thread_index = mydata->thread_id;
     vector<struct elem>  local_matingPool = mydata->thread_matingPool;
+	cout << "thread function!!! this is thread " << thread_index << " and i have amating pool size of " << local_matingPool.size() << endl;
 
 	while(local_matingPool.size() > 0) {
 		//crossover - for all in mating pool, pick a random partner, switch one random block
@@ -231,14 +239,14 @@ void *thread_calc( void* threadarg )
 			
         /*Mutate First Index*/
         int chance1= rand()%100;
-        if(chance1 < 10) {
+        if(chance1 < 20) {
             int bit = rand()%n;
             mutate(local_matingPool[firstIndex].x, local_matingPool[firstIndex].y, bit);
         }
         
         /*Mutate Second Index*/
         int chance2= rand()%100;
-        if(chance2 < 10) {
+        if(chance2 < 20) {
             int bit = rand()%n;
             mutate(local_matingPool[secondIndex].x, local_matingPool[secondIndex].y, bit);
         }
