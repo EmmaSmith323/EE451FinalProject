@@ -11,7 +11,7 @@
 using namespace std;
 //capacity could be 70% favorable outcome
 //capacity is the value that all threads commit to
-#define num_threads 16
+#define num_threads 64
 #define m_size 128
 
 // g++ -lpthread -o masterslave masterSlaveGA.cpp
@@ -179,19 +179,20 @@ int main(int argc, char** argv)
             fav_capacity = true;
         }
 			
-		cout << "END OF THIS GENERATION!" << endl;
-		cout << "capacity = " << cap << endl;
+		//cout << "END OF THIS GENERATION!" << endl;
+		//cout << "capacity = " << cap << endl;
 		
 		if( clock_gettime( CLOCK_REALTIME, &miniStop) == -1 ) { perror( "clock gettime" );}
 		miniTime = (miniStop.tv_sec - miniStart.tv_sec)+ (double)(miniStop.tv_nsec - miniStart.tv_nsec)/1e9;
-		printf("time for this generation is %f s\n", miniTime);
-		cout << endl;
+		//printf("time for this generation is %f s\n", miniTime);
+		//cout << endl << endl;
     } //end of capacity while - all done with generations
 	
 	if( clock_gettime( CLOCK_REALTIME, &fullStop) == -1 ) { perror( "clock gettime" );}	  
 	fullTime = (fullStop.tv_sec - fullStart.tv_sec)+ (double)(fullStop.tv_nsec - fullStart.tv_nsec)/1e9;
 	printf("time for entire algorithm is %f s\n", fullTime);
-   
+	cout << "master slave, n = " << n << " thread num = " << num_threads << endl << endl; 
+	cout << endl;
     return 0; 
 }
                                                                   

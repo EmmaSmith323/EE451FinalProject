@@ -1,0 +1,33 @@
+#!/bin/sh
+# I am a shell script
+#PBS -l nodes=2:ppn=8:myri
+
+# Run for 1 minutes
+#PBS -l walltime=2:00:00
+
+# Send all output sent to standard out to a file 
+#PBS -o 64tests.output
+
+# Send all output sent to standard error to a file
+#PBS -e errors.error
+
+# send my email address an email at the beginning (b) and the end (e) of the job
+#PBS -m be
+
+# My job is called 
+#PBS -N tests
+
+# my email address
+#PBS -M emmarsmi@usc.edu
+
+# Before starting the job. Change into this directory
+# this has the executable and output files will be created relative to this directory
+#PBS -d /home/rcf-40/emmarsmi/ee451/EE451FinalProject
+
+source /usr/usc/openmpi/default/setup.sh
+
+# Now run the program
+./mslave64 8 4 1010
+./mslave64 16 4 1010
+./mslave64 32 4 1010
+./mslave64 64 4 1010
