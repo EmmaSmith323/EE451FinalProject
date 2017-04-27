@@ -13,7 +13,7 @@
 using namespace std;
 //capacity could be 70% favorable outcome
 //capacity is the value that all threads commit to
-#define num_threads 16
+#define num_threads 64
 #define m_size 128
 
 struct elem{
@@ -108,7 +108,9 @@ int main(int argc, char** argv)
 	    //do mating using the slaves
         //split the m_size*m_size matrix into num_threads amount of threads
 		if( clock_gettime( CLOCK_REALTIME, &miniStart) == -1 ) { perror( "clock gettime" );}
-        for(int q = 0; q<num_threads; q++) {
+		for(int q = 0; q<num_threads; q++) {
+			thread_data_array[q].thread_matingPool.clear();
+			//cout << "size of thread mating pool before any pushbacks = " << thread_data_array[q].thread_matingPool.size() << endl;
 			//copy over m_vspace into m_vspace_copies
 			for(int i=(q*m_size)/num_threads; i< ((q+1)*m_size)/num_threads; i++) {
 				for(int j=0; j<m_size;  j++){
@@ -120,7 +122,7 @@ int main(int argc, char** argv)
                     thread_data_array[q].thread_id = q;
                     thread_data_array[q].fav = fav;
 				}
-			}
+			} 
 			rc = pthread_create(&threads[q], NULL, thread_calc, (void *) &thread_data_array[q]);
             if(rc) {
                 cout << "ERROR creating thread" << endl;
@@ -172,8 +174,10 @@ int main(int argc, char** argv)
 //recombination
 void swap(struct elem a, struct elem b, int start)
 {
+	a.dna = m_vspace[a.x][a.y];
+	b.dna = m_vspace[b.x][b.y];
 	
-		string temp = a.dna;
+	string temp = a.dna;
 		for(int i = start; i < start+chunk_size;i++) {
 			a.dna[i] = b.dna[i];
 			b.dna[i] = temp[i];
@@ -211,7 +215,7 @@ void *thread_calc( void* threadarg )
     
     int thread_index = mydata->thread_id;
     vector<struct elem>  local_matingPool = mydata->thread_matingPool;
-	cout << "thread function!!! this is thread " << thread_index << " and i have amating pool size of " << local_matingPool.size() << endl;
+	//cout << "thread function!!! this is thread " << thread_index << " and i have amating pool size of " << local_matingPool.size() << endl;
 
 	while(local_matingPool.size() > 0) {
 		//crossover - for all in mating pool, pick a random partner, switch one random block
@@ -239,14 +243,14 @@ void *thread_calc( void* threadarg )
 			
         /*Mutate First Index*/
         int chance1= rand()%100;
-        if(chance1 < 20) {
+        if(chance1 < 10) {
             int bit = rand()%n;
             mutate(local_matingPool[firstIndex].x, local_matingPool[firstIndex].y, bit);
         }
         
         /*Mutate Second Index*/
         int chance2= rand()%100;
-        if(chance2 < 20) {
+        if(chance2 < 10) {
             int bit = rand()%n;
             mutate(local_matingPool[secondIndex].x, local_matingPool[secondIndex].y, bit);
         }

@@ -3,19 +3,19 @@
 #PBS -l nodes=2:ppn=8:myri
 
 # Run for 1 minutes
-#PBS -l walltime=2:00:00
+#PBS -l walltime=4:00:00
 
 # Send all output sent to standard out to a file 
-#PBS -o testFC.output
+#PBS -o fineSeq.output
 
 # Send all output sent to standard error to a file
-#PBS -e errors.error
+#PBS -e errorfine.error
 
 # send my email address an email at the beginning (b) and the end (e) of the job
 #PBS -m be
 
 # My job is called 
-#PBS -N fc
+#PBS -N fcSeq
 
 # my email address
 #PBS -M emmarsmi@usc.edu
@@ -27,4 +27,26 @@
 source /usr/usc/openmpi/default/setup.sh
 
 # Now run the program
-./fineCoarse 8 4 1011
+./fineCoarse2 32 4 1010
+./fineCoarse2 32 8 10101010
+./fineCoarse2 32 16 1010101010101010
+
+./fineCoarse4 32 4 1010
+./fineCoarse4 32 8 10101010
+./fineCoarse4 32 16 1010101010101010
+
+./fineCoarse8 32 4 1010
+./fineCoarse8 32 8 10101010
+./fineCoarse8 32 16 1010101010101010
+
+./fineCoarse16 32 4 1010
+./fineCoarse16 32 8 10101010
+./fineCoarse16 32 16 1010101010101010
+
+./fineCoarse32 32 4 1010
+./fineCoarse32 32 8 10101010
+./fineCoarse32 32 16 1010101010101010
+
+./fineCoarse64 32 4 1010
+./fineCoarse64 32 8 10101010
+./fineCoarse64 32 16 1010101010101010
