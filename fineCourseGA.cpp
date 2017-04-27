@@ -8,6 +8,8 @@
 #include <iterator>
 #include <string.h>
 
+//FINISH THIS BY TONIGHT
+
 using namespace std;
 //capacity could be 70% favorable outcome
 //capacity is the value that all threads commit to
@@ -23,10 +25,12 @@ struct elem{
 struct thread_data {
     int thread_id;
     vector<struct elem>  thread_matingPool;
+    double fav_count;
+    string fav;
 };
 
 
-// g++ -lpthread -o masterslave masterSlaveGA.cpp
+// g++ -pthread -o masterslave masterSlaveGA.cpp
 static bool check_fav(string fav, string a);
 void *thread_calc( void* threadarg );
 static void mutate(int i, int j, int index);
@@ -97,6 +101,8 @@ int main(int argc, char** argv)
 					e.y = j;
 					e.dna = m_vspace[i][j];
 					thread_data_array[q].thread_matingPool.push_back(e);
+                    thread_data_array[q].thread_id = q;
+                    thread_data_array[q].fav = fav;
 				}
 			}
 			rc = pthread_create(&threads[q], NULL, thread_calc, (void *) &thread_data_array[q]);
@@ -113,29 +119,16 @@ int main(int argc, char** argv)
             }
         }
 		cout << "after joins" << endl;
-		//Copying back each piece from the threads into the segment of m_space
-		for(int q = 0; q<num_threads; q++) {
-			int temp = 0;
-			cout << "thread " << q << endl;
-			for(int i=0; i< (q*m_size)/num_threads; i++) {
-				for(int j=0; j<m_size;  j++){
-					cout << "thread index = " << q << " i = " << i << " j = " << j << " temp = " << temp <<  endl;
-					//cout << "thread_data_array[q].thread_matingPool[temp].dna = " << thread_data_array[q].thread_matingPool[temp].dna << endl; 
-					m_vspace[i][j] = thread_data_array[q].thread_matingPool[temp].dna;
-					temp++;
-				}
-			}
-		}
-		cout << "copied back?" << endl;
+
         double total_fav_pop = 0;
-		for(int i = 0; i<m_size; i++) {
-			for(int j = 0;j < m_size;j++) {
-				if(check_fav(fav, m_vspace[i][j])) 	{
-				total_fav_pop++;
-				}	
-			}
-			
-		}                     
+		for(int i = 0; i<num_threads; i++) {
+            
+            total_fav_pop += thread_data_array[i].fav_count;
+            cout << "  thread_data_array[i] " <<  thread_data_array[i].fav_count << endl;
+		}
+        
+        cout << "total_fav_pop = " << total_fav_pop << endl;
+        
         //total_fav_pop now has all of favorable people
         //decide capacity  = 70% favorable
         double population = m_size * m_size;
@@ -181,16 +174,18 @@ void mutate(int thread_index, int i, int j, int index)
 //THREAD FUNCTION
 void *thread_calc( void* threadarg ) 
 {
+    
+    int fav_count = 0;
     struct thread_data * mydata;
     mydata = (struct thread_data*) threadarg;
-
-    int thread_index = mydata->thread_id; 
+    string fav = mydata->fav;
+    
+    int thread_index = mydata->thread_id;
     vector<struct elem>  thread_matingPool = mydata->thread_matingPool;
 
 	while(thread_matingPool.size() > 0) {
-		//cout << "In mating while, thread Mating Pool size " << thread_matingPool.size() << "\n";
 		//crossover - for all in mating pool, pick a random partner, switch one random block
-		int firstIndex = rand()%(thread_matingPool.size());
+        int firstIndex = rand()%(thread_matingPool.size());
 		int secondIndex = rand()%(thread_matingPool.size());
 		while(firstIndex==secondIndex) {
 			secondIndex = rand()%(thread_matingPool.size());
@@ -202,6 +197,55 @@ void *thread_calc( void* threadarg )
 		swap(thread_matingPool[firstIndex], thread_matingPool[secondIndex], (blockID*chunk_size));
 		//printf("outside of swap \n");
 		
+        
+        
+        /*Mutate First Index*/
+        int chance1= rand()%100;
+        if(chance1 < 10) {
+            int bit = rand()%n;
+            mutate(thread_index, thread_matingPool[firstIndex].x, thread_matingPool[firstIndex].y, bit);
+        }
+        
+        /*Mutate Second Index*/
+        int chance2= rand()%100;
+        if(chance2 < 10) {
+            int bit = rand()%n;
+            mutate(thread_index, thread_matingPool[secondIndex].x, thread_matingPool[secondIndex].y, bit);
+        }
+        
+        
+        
+        
+        
+        /*Copy First Index back into m_vspace */
+        int i = thread_matingPool[firstIndex].x;
+        int j = thread_matingPool[firstIndex].y;
+        string dna1 =thread_matingPool[firstIndex].dna;
+        //cout << "m_vspace[" << i << "][" << j << "] was before : " << m_vspace[i][j] << endl;
+        m_vspace[i][j] = dna1;
+      //  cout << "m_vspace[" << i << "][" << j << "] is now : " << m_vspace[i][j] << endl;
+        
+        
+        /*Copy secondIndex back into m_vspace */
+        int x = thread_matingPool[secondIndex].x;
+        int y = thread_matingPool[secondIndex].y;
+        string dna2 =thread_matingPool[secondIndex].dna;
+       // cout << "m_vspace[" << x << "][" << y << "] was before : " << m_vspace[x][y] << endl;
+
+        m_vspace[x][y] = dna2;
+        //cout << "m_vspace[" << x << "][" << y << "] is now : " << m_vspace[x][y] << endl;
+
+        
+        /*Check favorabiltiy for first Index */
+        if(check_fav(fav, dna1)){
+            fav_count++;
+        }
+        /*Check favorabiltity for second Index*/
+        if(check_fav(fav,dna2)){
+            fav_count++;
+        }
+        
+        
 		//cout << "Thread Mating Pool size before erases " << thread_matingPool.size() << "\n";
 		if(firstIndex > secondIndex) {
 			thread_matingPool.erase(thread_matingPool.begin() + firstIndex);
@@ -211,23 +255,22 @@ void *thread_calc( void* threadarg )
 			thread_matingPool.erase(thread_matingPool.begin() + secondIndex);
 			thread_matingPool.erase(thread_matingPool.begin() + firstIndex);
 		}
-		//cout << "Thread Mating Pool size after erases " << thread_matingPool.size() << "\n";
+	
 	}//end of mating while loop - all paired up                                  
         
-	//Mutation - 10% chance to flip one random bit
-	for (int i = 0; i < thread_matingPool.size(); i++) {
-		int chance = rand()%100;
-		if(chance < 10) {
-			int bit = rand()%n;
-			mutate(thread_index, thread_matingPool[i].x, thread_matingPool[i].y, bit);
-		}
-	}
+    //we need to check favorability now
+    
 	// recopy the updated array to the thread data array
 	mydata->thread_matingPool = thread_matingPool;
+    mydata->fav_count = fav_count;
+    
+    
+    cout << "made it to exit in thread: " << thread_index << " fav_count = " << fav_count <<  endl;
 
+    pthread_exit(NULL);
     
 }
- 
+
 //finds favorable trait inside the bit string of length n
 bool check_fav(string fav, string a )
 {
